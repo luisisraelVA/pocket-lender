@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getLoans } from '../utils/storage'
 import { calculateDebt } from '../utils/calculations'
 import LoanList from './LoanList'
@@ -6,20 +7,46 @@ import LoanList from './LoanList'
 export default function Dashboard() {
   const [loans, setLoans] = useState([])
 
-  useEffect(() => {
+  const refreshLoans = () => {
     setLoans(getLoans().filter(l => l.status === 'activo'))
+  }
+
+  useEffect(() => {
+    refreshLoans()
   }, [])
 
   const totalDebt = loans.reduce((sum, loan) => sum + calculateDebt(loan), 0)
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Préstamos activos</h1>
-      <div className="bg-slate-800 p-4 rounded-xl">
-        <p className="text-gray-400">Deuda total</p>
-        <p className="text-3xl font-bold text-blue-400">${totalDebt.toFixed(2)}</p>
-      </div>
-      <LoanList loans={loans} onUpdate={() => setLoans(getLoans().filter(l => l.status === 'activo'))} />
+    <div className="space-y-6">
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
+      >
+        Pocket Lender
+      </motion.h1>
+
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200 }}
+        className="bg-slate-800/50 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-6 shadow-lg glow-card"
+      >
+        <p className="text-gray-300 text-sm">Deuda total activa</p>
+        <motion.p
+          key={totalDebt}
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-4xl font-bold text-cyan-300"
+        >
+          ${totalDebt.toFixed(2)}
+        </motion.p>
+      </motion.div>
+
+      <AnimatePresence>
+        <LoanList loans={loans} onUpdate={refreshLoans} />
+      </AnimatePresence>
     </div>
   )
 }

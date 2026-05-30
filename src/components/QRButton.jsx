@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import { calculateDebt } from '../utils/calculations'
 
@@ -23,8 +24,15 @@ export default function QRButton({ loan }) {
   }
 
   return (
-    <button onClick={shareQR} className="bg-blue-600 px-3 py-1 rounded text-sm">
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.9 }}
+      animate={{ boxShadow: ['0 0 0px #3b82f6', '0 0 15px #3b82f6', '0 0 0px #3b82f6'] }}
+      transition={{ repeat: Infinity, duration: 2 }}
+      onClick={shareQR}
+      className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white px-4 py-2 rounded-xl font-medium text-sm shadow-lg shadow-blue-500/30"
+    >
       QR
-    </button>
+    </motion.button>
   )
 }

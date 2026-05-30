@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { getLoans, saveLoans } from '../utils/storage'
 
 export default function ExportImport() {
@@ -30,11 +31,20 @@ export default function ExportImport() {
     reader.readAsText(file)
   }
 
+  const buttonClass = "w-full bg-gradient-to-r from-cyan-500 to-blue-600 py-3 rounded-xl font-bold text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-shadow"
+
   return (
     <div className="space-y-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold">Respaldar datos</h1>
-      <button onClick={handleExport} className="w-full bg-blue-600 py-3 rounded font-bold">Exportar préstamos (JSON)</button>
-      <label className="w-full bg-slate-800 py-3 rounded text-center block cursor-pointer">
+      <h1 className="text-2xl font-bold text-white">Respaldar datos</h1>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={handleExport}
+        className={buttonClass}
+      >
+        Exportar préstamos (JSON)
+      </motion.button>
+      <label className={`${buttonClass} text-center block cursor-pointer`}>
         Importar préstamos
         <input type="file" accept=".json" onChange={handleImport} className="hidden" />
       </label>
