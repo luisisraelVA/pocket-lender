@@ -4,7 +4,7 @@ import { setPin, verifyPin, isPinSet, unlockApp } from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 
 export default function LockScreen() {
-  const [pin, setPin] = useState('');
+  const [pin, setPinState] = useState('');
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState(false);
   const { setLocked } = useAuth();
@@ -14,33 +14,32 @@ export default function LockScreen() {
     setError(false);
     if (pin.length < 4) {
       const newPin = pin + num;
-      setPin(newPin);
+      setPinState(newPin);
+
       if (newPin.length === 4) {
         if (hasPin && !confirm) {
           // Verificar PIN existente
-          verifyPin(newPin).then(valid => {
-            if (valid) {
+          if (verifyPin(newPin)) {
+            unlockApp();
+            setLocked(false);
+          } else {
+            setError(true);
+            setPinState('');
+          }
+        } else if (!hasPin) {
+          // Configuración inicial
+          if (!confirm) {
+            setConfirm(newPin); // Guarda el primer PIN
+            setPinState('');
+          } else {
+            // Confirmación
+            if (newPin === confirm) {
+              setPin(newPin); // Se guarda en localStorage (sincrónico, sin promesa)
               unlockApp();
               setLocked(false);
             } else {
               setError(true);
-              setPin('');
-            }
-          });
-        } else if (!hasPin) {
-          // Primera configuración: pedir confirmación
-          if (!confirm) {
-            setConfirm(newPin);
-            setPin('');
-          } else {
-            if (newPin === confirm) {
-              setPin(newPin).then(() => {
-                unlockApp();
-                setLocked(false);
-              });
-            } else {
-              setError(true);
-              setPin('');
+              setPinState('');
               setConfirm(false);
             }
           }
@@ -50,7 +49,7 @@ export default function LockScreen() {
   };
 
   const handleDelete = () => {
-    setPin(pin.slice(0, -1));
+    setPinState(pin.slice(0, -1));
     setError(false);
   };
 
@@ -67,14 +66,17 @@ export default function LockScreen() {
       <p className="text-gray-400 mb-8 text-center">{title}</p>
       {subtitle && <p className="text-gray-300 mb-4">{subtitle}</p>}
 
-      {/* Indicador de dígitos */}
       <div className="flex gap-3 mb-8">
         {[0, 1, 2, 3].map((i) => (
           <motion.div
             key={i}
             animate={error ? { x: [0, -10, 10, -10, 10, 0] } : {}}
             className={`w-5 h-5 rounded-full border-2 ${
-              pin.length > i ? (error ? 'border-red-400 bg-red-400' : 'border-cyan-400 bg-cyan-400') : 'border-gray-500'
+              pin.length > i
+                ? error
+                  ? 'border-red-400 bg-red-400'
+                  : 'border-cyan-400 bg-cyan-400'
+                : 'border-gray-500'
             }`}
           />
         ))}
@@ -82,7 +84,6 @@ export default function LockScreen() {
 
       {error && <p className="text-red-400 mb-4">PIN incorrecto, intenta de nuevo</p>}
 
-      {/* Teclado numérico */}
       <div className="grid grid-cols-3 gap-3 w-64">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
           <motion.button
@@ -94,7 +95,7 @@ export default function LockScreen() {
             {num}
           </motion.button>
         ))}
-        <div /> {/* espacio */}
+        <div />
         <motion.button
           whileTap={{ scale: 0.8 }}
           onClick={() => handleNumber('0')}

@@ -1,27 +1,42 @@
-// Utilidades para el PIN de acceso
-const PIN_KEY = 'pin_hash';
+// Utilidades para el PIN de acceso (sin dependencia de crypto.subtle)
+const PIN_KEY = 'pin_encoded';
 const SESSION_KEY = 'unlocked_until';
-const LOCK_TIMEOUT = 2 * 60 * 1000; // 2 minutos en segundo plano
+const LOCK_TIMEOUT = 2 * 60 * 1000; // 2 minutos
 
-// Hash SHA-256 del PIN (solo funciona en HTTPS o localhost)
-async function hashPin(pin) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pin);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// Clave simple para ofuscar (no es ultra segura pero evita ver el PIN a simple vista)
+const XOR_KEY = 'PocketLender2024';
+
+function simpleEncrypt(text) {
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    result += String.fromCharCode(text.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length));
+  }
+  return btoa(result);
 }
 
-export async function setPin(pin) {
-  const hash = await hashPin(pin);
-  localStorage.setItem(PIN_KEY, hash);
+function simpleDecrypt(encoded) {
+  try {
+    const text = atob(encoded);
+    let result = '';
+    for (let i = 0; i < text.length; i++) {
+      result += String.fromCharCode(text.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length));
+    }
+    return result;
+  } catch (e) {
+    return '';
+  }
 }
 
-export async function verifyPin(pin) {
-  const storedHash = localStorage.getItem(PIN_KEY);
-  if (!storedHash) return false;
-  const hash = await hashPin(pin);
-  return hash === storedHash;
+export function setPin(pin) {
+  const encoded = simpleEncrypt(pin);
+  localStorage.setItem(PIN_KEY, encoded);
+}
+
+export function verifyPin(pin) {
+  const storedEncoded = localStorage.getItem(PIN_KEY);
+  if (!storedEncoded) return false;
+  const decoded = simpleDecrypt(storedEncoded);
+  return decoded === pin;
 }
 
 export function isPinSet() {
