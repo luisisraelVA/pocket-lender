@@ -1,5 +1,11 @@
 {
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist",
+  "installCommand": "bun install",
   "rewrites": [
-    { "source": "/((?!assets/|icons/|manifest.json|sw.js).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!assets/|icons/|manifest.json|sw.js).*)",
+      "destination": "/index.html"
+    }
   ]
 }
