@@ -16,6 +16,14 @@ export function addLoan(loan) {
   return loans;
 }
 
+export function updateLoan(id, updatedData) {
+  const loans = getLoans().map(loan =>
+    loan.id === id ? { ...loan, ...updatedData } : loan
+  );
+  saveLoans(loans);
+  return loans;
+}
+
 export function markAsPaid(id) {
   const loans = getLoans().map(loan =>
     loan.id === id ? { ...loan, status: 'pagado', paidAt: new Date().toISOString() } : loan

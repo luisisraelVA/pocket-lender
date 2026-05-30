@@ -1,25 +1,19 @@
 @import "tailwindcss";
 
-/* Animación de brillo para tarjetas */
 @keyframes glow {
   0%, 100% { box-shadow: 0 0 5px rgba(56, 189, 248, 0.3); }
   50% { box-shadow: 0 0 20px rgba(56, 189, 248, 0.6); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
 }
 
 .glow-card {
   animation: glow 2s ease-in-out infinite;
 }
 
-.float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Estilo personalizado para scrollbar (opcional) */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0f172a; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+/* Asegurar que el arrastre no cause scroll */
+.draggable-item {
+  touch-action: pan-y;
+}

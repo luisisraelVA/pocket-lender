@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import QRCode from 'qrcode'
 import { calculateDebt } from '../utils/calculations'
+import toast from 'react-hot-toast'
 
 export default function QRButton({ loan }) {
   const shareQR = async () => {
@@ -17,8 +18,10 @@ export default function QRButton({ loan }) {
           title: 'Detalle de préstamo',
           text: `Hola ${loan.clientName}, aquí los detalles de tu préstamo.`,
         })
+        toast.success('QR compartido')
       } else {
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+        toast('Enlace copiado (abriendo WhatsApp)', { icon: '📋' })
       }
     }, 'image/png')
   }

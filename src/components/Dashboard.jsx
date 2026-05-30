@@ -1,21 +1,29 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { getLoans } from '../utils/storage'
-import { calculateDebt } from '../utils/calculations'
-import LoanList from './LoanList'
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { getLoans } from '../utils/storage';
+import { calculateDebt } from '../utils/calculations';
+import LoanList from './LoanList';
+import SearchBar from './SearchBar';
+import WeeklySummary from './WeeklySummary';
 
 export default function Dashboard() {
-  const [loans, setLoans] = useState([])
+  const [loans, setLoans] = useState([]);
+  const [search, setSearch] = useState('');
 
   const refreshLoans = () => {
-    setLoans(getLoans().filter(l => l.status === 'activo'))
-  }
+    setLoans(getLoans().filter(l => l.status === 'activo'));
+  };
 
   useEffect(() => {
-    refreshLoans()
-  }, [])
+    refreshLoans();
+  }, []);
 
-  const totalDebt = loans.reduce((sum, loan) => sum + calculateDebt(loan), 0)
+  const filtered = loans.filter(loan =>
+    loan.clientName.toLowerCase().includes(search.toLowerCase()) ||
+    (loan.phone && loan.phone.includes(search))
+  );
+
+  const totalDebt = filtered.reduce((sum, loan) => sum + calculateDebt(loan), 0);
 
   return (
     <div className="space-y-6">
@@ -27,10 +35,11 @@ export default function Dashboard() {
         Pocket Lender
       </motion.h1>
 
+      <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
+
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200 }}
         className="bg-slate-800/50 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-6 shadow-lg glow-card"
       >
         <p className="text-gray-300 text-sm">Deuda total activa</p>
@@ -44,9 +53,9 @@ export default function Dashboard() {
         </motion.p>
       </motion.div>
 
-      <AnimatePresence>
-        <LoanList loans={loans} onUpdate={refreshLoans} />
-      </AnimatePresence>
+      <WeeklySummary loans={filtered} />
+
+      <LoanList loans={filtered} onUpdate={refreshLoans} />
     </div>
-  )
+  );
 }

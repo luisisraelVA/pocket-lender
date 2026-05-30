@@ -1,23 +1,31 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { getLoans } from '../utils/storage'
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getLoans } from '../utils/storage';
+import SearchBar from './SearchBar';
 
 export default function Historial() {
-  const [loans, setLoans] = useState([])
+  const [loans, setLoans] = useState([]);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    setLoans(getLoans().filter(l => l.status === 'pagado').sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt)))
-  }, [])
+    setLoans(getLoans().filter(l => l.status === 'pagado').sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt)));
+  }, []);
+
+  const filtered = loans.filter(loan =>
+    loan.clientName.toLowerCase().includes(search.toLowerCase()) ||
+    (loan.phone && loan.phone.includes(search))
+  );
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-white">Historial de pagos</h1>
-      {loans.length === 0 ? (
-        <p className="text-gray-400">No hay préstamos pagados.</p>
+      <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar en historial..." />
+      {filtered.length === 0 ? (
+        <p className="text-gray-400 text-center py-10">Sin resultados</p>
       ) : (
         <ul className="space-y-3">
           <AnimatePresence>
-            {loans.map(loan => (
+            {filtered.map(loan => (
               <motion.li
                 key={loan.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -35,5 +43,5 @@ export default function Historial() {
         </ul>
       )}
     </div>
-  )
+  );
 }
