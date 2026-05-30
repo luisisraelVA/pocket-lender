@@ -1,17 +1,27 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { calculateDebt } from '../utils/calculations';
+import toast from 'react-hot-toast';
 
 export default function PaymentModal({ loan, onClose, onPaid }) {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const maxAmount = calculateDebt(loan);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const paymentAmount = parseFloat(amount);
+
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
-      alert('Monto inválido');
+      toast.error('Ingresa un monto válido');
       return;
     }
+    if (paymentAmount > maxAmount) {
+      toast.error(`El pago no puede exceder la deuda actual (Bs. ${maxAmount.toFixed(2)})`);
+      return;
+    }
+
     onPaid(loan.id, amount, date);
     onClose();
   };
@@ -33,19 +43,35 @@ export default function PaymentModal({ loan, onClose, onPaid }) {
         onClick={e => e.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-white mb-3">Registrar pago</h3>
-        <p className="text-sm text-gray-400 mb-4">{loan.clientName}</p>
+        <p className="text-sm text-gray-400 mb-2">{loan.clientName}</p>
+        <p className="text-xs text-cyan-300 mb-4">
+          Deuda actual: Bs. {maxAmount.toFixed(2)}
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm text-gray-300">Monto (Bs.)</label>
-            <input type="number" step="0.01" className={inputClasses} value={amount} onChange={e => setAmount(e.target.value)} required autoFocus />
+            <label className="text-sm text-gray-300">Monto (máx Bs. {maxAmount.toFixed(2)})</label>
+            <input
+              type="number"
+              step="0.01"
+              className={inputClasses}
+              placeholder={`0.00`}
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+              required
+              autoFocus
+            />
           </div>
           <div>
             <label className="text-sm text-gray-300">Fecha</label>
             <input type="date" className={inputClasses} value={date} onChange={e => setDate(e.target.value)} required />
           </div>
           <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm">Cancelar</button>
-            <button type="submit" className="flex-1 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold text-sm">Guardar</button>
+            <button type="button" onClick={onClose} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm">
+              Cancelar
+            </button>
+            <button type="submit" className="flex-1 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold text-sm">
+              Guardar
+            </button>
           </div>
         </form>
       </motion.div>

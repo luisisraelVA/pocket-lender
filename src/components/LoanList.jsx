@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
 import { calculateDebt } from '../utils/calculations';
 import { deleteLoan } from '../utils/storage';
-import { User, Phone, Edit, Trash2, CheckCircle, DollarSign, Clock } from 'lucide-react';
+import { User, Phone, Edit, Trash2, DollarSign } from 'lucide-react';
 import QRButton from './QRButton';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 
-export default function LoanList({ loans, tab, onEdit, onAddPayment, onMarkPaid, onUpdate }) {
+export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   if (loans.length === 0) {
@@ -114,12 +114,6 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onMarkPaid,
                 </button>
                 <QRButton loan={loan} />
                 <button
-                  onClick={() => onMarkPaid(loan.id)}
-                  className="flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs text-white"
-                >
-                  <CheckCircle size={14} /> Completar
-                </button>
-                <button
                   onClick={() => setConfirmDelete(loan.id)}
                   className="p-1.5 bg-slate-700/50 rounded-lg hover:bg-slate-600"
                 >
@@ -128,7 +122,6 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onMarkPaid,
               </div>
             )}
 
-            {/* Confirmación de eliminación */}
             {confirmDelete === loan.id && (
               <div className="flex gap-2 mt-2">
                 <button onClick={() => setConfirmDelete(null)} className="text-xs text-gray-400">Cancelar</button>

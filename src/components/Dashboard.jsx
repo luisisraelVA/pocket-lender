@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 export default function Dashboard() {
   const [loans, setLoans] = useState([]);
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('activos'); // 'activos' | 'pagados'
+  const [activeTab, setActiveTab] = useState('activos');
   const [showNewLoan, setShowNewLoan] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
   const [payingLoan, setPayingLoan] = useState(null);
@@ -42,20 +42,14 @@ export default function Dashboard() {
     addPayment(loanId, { amount: parseFloat(amount), date });
     refreshLoans();
     toast.success(`Pago de Bs. ${amount} registrado`);
-    // Si con este pago la deuda queda <=0, marcar automáticamente como pagado
+    // Marcar automáticamente si la deuda queda en 0
     const updatedLoans = getLoans();
     const loan = updatedLoans.find(l => l.id === loanId);
     if (loan && calculateDebt(loan) <= 0) {
       markAsPaid(loanId);
       refreshLoans();
-      toast.success('¡Préstamo completado! Se movió a pagados', { icon: '✅' });
+      toast.success('¡Préstamo completado!', { icon: '✅' });
     }
-  };
-
-  const handleMarkPaid = (loanId) => {
-    markAsPaid(loanId);
-    refreshLoans();
-    toast.success('Préstamo marcado como pagado');
   };
 
   const handleExport = () => {
@@ -92,7 +86,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950 p-4 space-y-4">
-      {/* Cabecera */}
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -101,7 +94,6 @@ export default function Dashboard() {
         Pocket Lender
       </motion.h1>
 
-      {/* Resumen deuda activa */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -111,7 +103,6 @@ export default function Dashboard() {
         <p className="text-3xl font-bold text-cyan-300">Bs. {totalDebt.toFixed(2)}</p>
       </motion.div>
 
-      {/* Pestañas */}
       <div className="flex gap-2 bg-slate-800/50 p-1 rounded-xl">
         <button
           onClick={() => setActiveTab('activos')}
@@ -141,17 +132,14 @@ export default function Dashboard() {
         🔔 Recordar vencimientos de hoy
       </motion.button>
 
-      {/* Lista de préstamos */}
       <LoanList
         loans={filteredLoans}
         tab={activeTab}
         onEdit={(loan) => setEditingLoan(loan)}
         onAddPayment={(loan) => setPayingLoan(loan)}
-        onMarkPaid={handleMarkPaid}
         onUpdate={refreshLoans}
       />
 
-      {/* Botones flotantes */}
       <div className="fixed bottom-6 right-6 flex flex-col gap-2">
         <motion.button
           whileHover={{ scale: 1.1 }}
@@ -182,7 +170,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Modales */}
       <AnimatePresence>
         {showNewLoan && (
           <LoanFormModal
