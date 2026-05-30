@@ -12,12 +12,10 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
 
   if (loans.length === 0) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+      <div className="text-center py-16 text-gray-400">
         <p className="text-5xl mb-4">{tab === 'activos' ? '💸' : '📭'}</p>
-        <p className="text-gray-400 text-lg">
-          {tab === 'activos' ? 'No hay préstamos activos' : 'No hay préstamos pagados'}
-        </p>
-      </motion.div>
+        <p className="text-lg">{tab === 'activos' ? 'No hay préstamos activos' : 'No hay préstamos pagados'}</p>
+      </div>
     );
   }
 
@@ -36,32 +34,35 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
         return (
           <motion.li
             key={loan.id}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4 space-y-2"
+            className="glass rounded-2xl p-5 space-y-3 shadow-lg hover:border-cyan-400/20 transition-all duration-300"
           >
-            <div className="flex items-center gap-2">
-              <User size={16} className="text-cyan-400" />
-              <span className="font-bold text-white">{loan.clientName}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Phone size={14} />
-              <span>{loan.phone}</span>
-            </div>
-            <div className="flex justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                <User size={20} className="text-cyan-400" />
+              </div>
               <div>
-                <p className="text-xs text-gray-500">
-                  Capital: <span className="text-white">Bs. {loan.amount}</span>
-                </p>
-                <p className="text-xs text-gray-500">
-                  Interés diario: {loan.dailyInterest}%
-                </p>
+                <p className="font-bold text-white text-lg">{loan.clientName}</p>
+                {loan.phone && (
+                  <div className="flex items-center gap-1 text-sm text-gray-400">
+                    <Phone size={14} />
+                    <span>{loan.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-xs text-gray-500">Capital: <span className="text-white font-medium">Bs. {loan.amount}</span></p>
+                <p className="text-xs text-gray-500">Interés diario: {loan.dailyInterest}%</p>
               </div>
               <div className="text-right">
                 {tab === 'activos' ? (
                   <>
                     <p className="text-xs text-gray-500">Deuda actual</p>
-                    <p className="text-lg font-bold text-cyan-300">Bs. {debt.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-cyan-300 tabular">Bs. {debt.toFixed(2)}</p>
                     <p className="text-xs text-gray-500">Pagado: Bs. {totalPaid.toFixed(2)}</p>
                     <p className="text-xs text-gray-500">
                       Días: {Math.floor((new Date() - new Date(loan.startDate)) / (1000 * 60 * 60 * 24))}
@@ -70,10 +71,8 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
                 ) : (
                   <>
                     <p className="text-xs text-gray-500">Monto total</p>
-                    <p className="text-lg font-bold text-emerald-400">Bs. {loan.amount}</p>
-                    <p className="text-xs text-gray-500">
-                      Pagado: Bs. {totalPaid.toFixed(2)}
-                    </p>
+                    <p className="text-2xl font-bold text-emerald-300 tabular">Bs. {loan.amount}</p>
+                    <p className="text-xs text-gray-500">Pagado: Bs. {totalPaid.toFixed(2)}</p>
                     <p className="text-xs text-gray-500">
                       Pagado el {new Date(loan.paidAt).toLocaleDateString()}
                     </p>
@@ -83,47 +82,36 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
             </div>
 
             {loan.payments?.length > 0 && (
-              <details className="text-xs text-gray-400">
-                <summary className="cursor-pointer">Historial de pagos ({loan.payments.length})</summary>
-                <ul className="mt-1 pl-4 list-disc">
+              <details className="text-xs text-gray-400 mt-2">
+                <summary className="cursor-pointer font-medium text-gray-300">Historial de pagos ({loan.payments.length})</summary>
+                <ul className="mt-2 pl-4 list-disc space-y-1">
                   {loan.payments.map((p, i) => (
-                    <li key={i}>
-                      {p.date}: Bs. {p.amount.toFixed(2)}
-                    </li>
+                    <li key={i}>{p.date}: Bs. {p.amount.toFixed(2)}</li>
                   ))}
                 </ul>
               </details>
             )}
 
             {tab === 'activos' && (
-              <div className="flex gap-2 pt-2 flex-wrap">
-                <button
-                  onClick={() => onAddPayment(loan)}
-                  className="flex items-center gap-1 px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-xs text-white"
-                >
-                  <DollarSign size={14} /> Pago
+              <div className="flex flex-wrap gap-2 pt-2">
+                <button onClick={() => onAddPayment(loan)} className="flex items-center gap-1 px-4 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 rounded-xl text-cyan-300 text-sm font-medium transition-all">
+                  <DollarSign size={16} /> Pago
                 </button>
-                <button
-                  onClick={() => onEdit(loan)}
-                  className="p-1.5 bg-slate-700/50 rounded-lg hover:bg-slate-600"
-                >
-                  <Edit size={14} className="text-yellow-400" />
+                <button onClick={() => onEdit(loan)} className="p-2.5 glass rounded-xl hover:bg-white/5">
+                  <Edit size={16} className="text-yellow-400" />
                 </button>
                 <QRButton loan={loan} />
                 <RecordatorioButton loan={loan} />
-                <button
-                  onClick={() => setConfirmDelete(loan.id)}
-                  className="p-1.5 bg-slate-700/50 rounded-lg hover:bg-slate-600"
-                >
-                  <Trash2 size={14} className="text-red-400" />
+                <button onClick={() => setConfirmDelete(loan.id)} className="p-2.5 glass rounded-xl hover:bg-white/5">
+                  <Trash2 size={16} className="text-red-400" />
                 </button>
               </div>
             )}
 
             {confirmDelete === loan.id && (
-              <div className="flex gap-2 mt-2">
-                <button onClick={() => setConfirmDelete(null)} className="text-xs text-gray-400">Cancelar</button>
-                <button onClick={() => handleDelete(loan.id)} className="text-xs text-red-400 font-bold">Eliminar</button>
+              <div className="flex gap-3 mt-2">
+                <button onClick={() => setConfirmDelete(null)} className="text-sm text-gray-400 hover:text-white transition-colors">Cancelar</button>
+                <button onClick={() => handleDelete(loan.id)} className="text-sm text-red-400 font-bold hover:text-red-300 transition-colors">Eliminar</button>
               </div>
             )}
           </motion.li>

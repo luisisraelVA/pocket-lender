@@ -1,19 +1,134 @@
-@import "tailwindcss";
-
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(56, 189, 248, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(56, 189, 248, 0.6); }
+@import "tailwindcss";/* ─── Design Tokens ─────────────────────────────────────────────── */
+:root {
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --clr-bg:      #04091a;
+  --clr-surface: rgba(7, 16, 38, 0.65);
+  --clr-accent:  #22d3ee;
+  --clr-accent2: #3b82f6;
+  --clr-border:  rgba(255,255,255,0.07);
 }
 
-.glow-card {
-  animation: glow 2s ease-in-out infinite;
+html, body, * {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0f172a; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-
-/* Asegurar que el arrastre no cause scroll */
-.draggable-item {
-  touch-action: pan-y;
+/* ─── Glass Morphism ─────────────────────────────────────────────── */
+.glass {
+  background: rgba(7, 16, 38, 0.62);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 4px 28px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
+
+.glass-accent {
+  background: rgba(6, 182, 212, 0.07);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  box-shadow:
+    0 4px 28px rgba(6, 182, 212, 0.07),
+    inset 0 1px 0 rgba(6, 182, 212, 0.07);
+}
+
+.glass-emerald {
+  background: rgba(16, 185, 129, 0.07);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow:
+    0 4px 28px rgba(16, 185, 129, 0.06),
+    inset 0 1px 0 rgba(16, 185, 129, 0.06);
+}
+
+/* ─── Gradient Text ──────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ─── Glow Card (balance card pulsante) ─────────────────────────── */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 28px rgba(0,0,0,0.38),
+      0 0 0px rgba(6,182,212,0),
+      inset 0 1px 0 rgba(6,182,212,0.07);
+  }
+  50% {
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.28),
+      0 0 42px rgba(6,182,212,0.14),
+      inset 0 1px 0 rgba(6,182,212,0.1);
+  }
+}
+.glow-card { animation: glow-pulse 3.2s ease-in-out infinite; }
+
+/* ─── Ambient Orb (orbes de luz de fondo) ────────────────────────── */
+@keyframes ambient-float {
+  0%, 100% { opacity: 0.55; transform: scale(1) translateY(0px); }
+  50%       { opacity: 0.75; transform: scale(1.06) translateY(-8px); }
+}
+.ambient-orb { animation: ambient-float 9s ease-in-out infinite; }
+
+/* ─── Ambient Orb Colors ─────────────────────────────────────────── */
+.orb-cyan  { background: radial-gradient(circle, rgba(6,182,212,0.16) 0%, transparent 70%); }
+.orb-blue  { background: radial-gradient(circle, rgba(59,130,246,0.13) 0%, transparent 70%); }
+.orb-indigo{ background: radial-gradient(circle, rgba(99,102,241,0.1)  0%, transparent 70%); }
+
+/* ─── Tabular Numbers (cantidades monetarias) ────────────────────── */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Form Input Focus ───────────────────────────────────────────── */
+.form-input {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.form-input:focus {
+  border-color: rgba(34, 211, 238, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.11);
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ─── Key Button (PIN keypad) ────────────────────────────────────── */
+.key-btn {
+  position: relative;
+  overflow: hidden;
+}
+.key-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(34,211,238,0.25) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.key-btn:active::after { opacity: 1; }
+
+/* ─── Scrollbar ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.22);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.42);
+}
+
+/* ─── Touch handling ─────────────────────────────────────────────── */
+.draggable-item { touch-action: pan-y; }
+
+/* ─── Details/summary styling ────────────────────────────────────── */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }

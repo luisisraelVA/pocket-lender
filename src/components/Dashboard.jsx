@@ -7,6 +7,7 @@ import SearchBar from './SearchBar';
 import LoanFormModal from './LoanFormModal';
 import EditLoanModal from './EditLoanModal';
 import PaymentModal from './PaymentModal';
+import { checkAndNotifyDaily } from '../utils/notifications';
 import { PlusCircle, Download, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,12 +20,11 @@ export default function Dashboard() {
   const [payingLoan, setPayingLoan] = useState(null);
   const [showExport, setShowExport] = useState(false);
 
-  const refreshLoans = () => {
-    setLoans(getLoans());
-  };
+  const refreshLoans = () => setLoans(getLoans());
 
   useEffect(() => {
     refreshLoans();
+    checkAndNotifyDaily();
   }, []);
 
   const activeLoans = loans.filter(l => l.status === 'activo');
@@ -83,105 +83,117 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950 p-4 space-y-4">
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
-      >
-        Pocket Lender
-      </motion.h1>
+    <div className="min-h-screen bg-[var(--clr-bg)] p-4 pb-24 relative overflow-hidden">
+      {/* Orbes ambientales */}
+      <div className="absolute top-[-60px] left-[-20px] w-64 h-64 orb-cyan ambient-orb opacity-30 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-80 h-80 orb-indigo ambient-orb opacity-20 pointer-events-none" />
 
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-slate-800/50 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-4 shadow-lg glow-card"
-      >
-        <p className="text-gray-300 text-sm">Deuda total activa</p>
-        <p className="text-3xl font-bold text-cyan-300">Bs. {totalDebt.toFixed(2)}</p>
-      </motion.div>
+      <div className="relative z-10 space-y-6">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-extrabold gradient-text"
+        >
+          Pocket Lender
+        </motion.h1>
 
-      <div className="flex gap-2 bg-slate-800/50 p-1 rounded-xl">
-        <button
-          onClick={() => setActiveTab('activos')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'activos' ? 'bg-cyan-500 text-white' : 'text-gray-400 hover:text-white'
-          }`}
+        {/* Tarjeta de deuda total */}
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="glass-accent glow-card rounded-3xl p-6 text-center"
         >
-          Activos ({activeLoans.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('pagados')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'pagados' ? 'bg-emerald-500 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Pagados ({paidLoans.length})
-        </button>
+          <p className="text-gray-300 text-sm">Deuda total activa</p>
+          <p className="text-4xl font-bold text-cyan-300 tabular mt-2">
+            Bs. {totalDebt.toFixed(2)}
+          </p>
+        </motion.div>
+
+        {/* Tabs */}
+        <div className="glass rounded-2xl p-1.5 flex gap-1">
+          <button
+            onClick={() => setActiveTab('activos')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+              activeTab === 'activos' ? 'bg-cyan-500/20 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Activos ({activeLoans.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('pagados')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+              activeTab === 'pagados' ? 'bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/10' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Pagados ({paidLoans.length})
+          </button>
+        </div>
+
+        <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
+
+        <LoanList
+          loans={filteredLoans}
+          tab={activeTab}
+          onEdit={setEditingLoan}
+          onAddPayment={setPayingLoan}
+          onUpdate={refreshLoans}
+        />
+
+        {/* Botones flotantes */}
+        <div className="fixed bottom-8 right-6 flex flex-col gap-3 z-20">
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={() => setShowNewLoan(true)}
+            className="w-16 h-16 glass-accent rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20"
+          >
+            <PlusCircle size={30} className="text-cyan-300" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={() => setShowExport(!showExport)}
+            className="w-16 h-16 glass rounded-2xl flex items-center justify-center shadow-lg"
+          >
+            <Upload size={24} className="text-gray-300" />
+          </motion.button>
+          {showExport && (
+            <div className="absolute bottom-20 right-0 glass rounded-2xl p-2 flex flex-col gap-1 min-w-[160px] shadow-xl">
+              <button onClick={handleExport} className="text-left px-4 py-2 hover:bg-white/5 rounded-xl text-white text-sm">
+                📤 Exportar JSON
+              </button>
+              <label className="text-left px-4 py-2 hover:bg-white/5 rounded-xl text-white text-sm cursor-pointer">
+                📥 Importar JSON
+                <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+              </label>
+            </div>
+          )}
+        </div>
+
+        {/* Modales */}
+        <AnimatePresence>
+          {showNewLoan && (
+            <LoanFormModal
+              onClose={() => setShowNewLoan(false)}
+              onSaved={() => { setShowNewLoan(false); refreshLoans(); }}
+            />
+          )}
+          {editingLoan && (
+            <EditLoanModal
+              loan={editingLoan}
+              onClose={() => setEditingLoan(null)}
+              onSaved={() => { setEditingLoan(null); refreshLoans(); }}
+            />
+          )}
+          {payingLoan && (
+            <PaymentModal
+              loan={payingLoan}
+              onClose={() => setPayingLoan(null)}
+              onPaid={handleAddPayment}
+            />
+          )}
+        </AnimatePresence>
       </div>
-
-      <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
-
-      <LoanList
-        loans={filteredLoans}
-        tab={activeTab}
-        onEdit={(loan) => setEditingLoan(loan)}
-        onAddPayment={(loan) => setPayingLoan(loan)}
-        onUpdate={refreshLoans}
-      />
-
-      <div className="fixed bottom-6 right-6 flex flex-col gap-2">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowNewLoan(true)}
-          className="w-14 h-14 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg shadow-cyan-500/30 flex items-center justify-center"
-        >
-          <PlusCircle size={28} className="text-white" />
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowExport(!showExport)}
-          className="w-14 h-14 bg-gradient-to-r from-slate-600 to-slate-700 rounded-full shadow-lg flex items-center justify-center"
-        >
-          <Upload size={22} className="text-white" />
-        </motion.button>
-        {showExport && (
-          <div className="absolute bottom-16 right-0 bg-slate-800 rounded-xl p-2 shadow-xl border border-slate-700 flex flex-col gap-1">
-            <button onClick={handleExport} className="text-left px-3 py-2 hover:bg-slate-700 rounded-lg text-white text-sm">
-              📤 Exportar JSON
-            </button>
-            <label className="text-left px-3 py-2 hover:bg-slate-700 rounded-lg text-white text-sm cursor-pointer">
-              📥 Importar JSON
-              <input type="file" accept=".json" onChange={handleImport} className="hidden" />
-            </label>
-          </div>
-        )}
-      </div>
-
-      <AnimatePresence>
-        {showNewLoan && (
-          <LoanFormModal
-            onClose={() => setShowNewLoan(false)}
-            onSaved={() => { setShowNewLoan(false); refreshLoans(); }}
-          />
-        )}
-        {editingLoan && (
-          <EditLoanModal
-            loan={editingLoan}
-            onClose={() => setEditingLoan(null)}
-            onSaved={() => { setEditingLoan(null); refreshLoans(); }}
-          />
-        )}
-        {payingLoan && (
-          <PaymentModal
-            loan={payingLoan}
-            onClose={() => setPayingLoan(null)}
-            onPaid={handleAddPayment}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
