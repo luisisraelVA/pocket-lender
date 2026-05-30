@@ -5,7 +5,9 @@ export function calculateDebt(loan) {
   const diffTime = today - start;
   const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   const interest = loan.amount * (loan.dailyInterest / 100) * days;
-  return loan.amount + interest;
+  const totalOwed = loan.amount + interest;
+  const totalPaid = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0);
+  return Math.max(0, totalOwed - totalPaid);
 }
 
 export function generateId() {

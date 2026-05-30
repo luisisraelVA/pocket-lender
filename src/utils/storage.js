@@ -11,9 +11,10 @@ export function saveLoans(loans) {
 
 export function addLoan(loan) {
   const loans = getLoans();
+  // Asegurarse de que tenga payments array
+  loan.payments = loan.payments || [];
   loans.push(loan);
   saveLoans(loans);
-  return loans;
 }
 
 export function updateLoan(id, updatedData) {
@@ -21,7 +22,6 @@ export function updateLoan(id, updatedData) {
     loan.id === id ? { ...loan, ...updatedData } : loan
   );
   saveLoans(loans);
-  return loans;
 }
 
 export function markAsPaid(id) {
@@ -29,11 +29,22 @@ export function markAsPaid(id) {
     loan.id === id ? { ...loan, status: 'pagado', paidAt: new Date().toISOString() } : loan
   );
   saveLoans(loans);
-  return loans;
 }
 
 export function deleteLoan(id) {
   const loans = getLoans().filter(loan => loan.id !== id);
   saveLoans(loans);
-  return loans;
+}
+
+export function addPayment(loanId, payment) {
+  const loans = getLoans().map(loan => {
+    if (loan.id === loanId) {
+      return {
+        ...loan,
+        payments: [...(loan.payments || []), payment],
+      };
+    }
+    return loan;
+  });
+  saveLoans(loans);
 }

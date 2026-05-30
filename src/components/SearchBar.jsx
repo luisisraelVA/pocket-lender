@@ -14,7 +14,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Buscar...' }
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all"
+        className="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 outline-none focus:border-cyan-400 transition-all"
       />
     </motion.div>
   );

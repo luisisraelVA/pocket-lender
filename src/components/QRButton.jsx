@@ -1,30 +1,29 @@
-import { motion } from 'framer-motion'
-import QRCode from 'qrcode'
-import { calculateDebt } from '../utils/calculations'
-import toast from 'react-hot-toast'
+import { motion } from 'framer-motion';
+import QRCode from 'qrcode';
+import { calculateDebt } from '../utils/calculations';
+import toast from 'react-hot-toast';
 
 export default function QRButton({ loan }) {
   const shareQR = async () => {
-    const debt = calculateDebt(loan).toFixed(2)
-    const text = `Préstamo de ${loan.clientName}\nDeuda: $${debt}\nVence: ${loan.dueDate}`
-    const canvas = document.createElement('canvas')
-    await QRCode.toCanvas(canvas, text, { width: 400 })
+    const debt = calculateDebt(loan).toFixed(2);
+    const text = `Préstamo de ${loan.clientName}\nDeuda actual: Bs. ${debt}\nTel: ${loan.phone}\nPocket Lender`;
+    const canvas = document.createElement('canvas');
+    await QRCode.toCanvas(canvas, text, { width: 400 });
 
     canvas.toBlob(async (blob) => {
-      const file = new File([blob], 'prestamo-qr.png', { type: 'image/png' })
+      const file = new File([blob], 'prestamo-qr.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: 'Detalle de préstamo',
           text: `Hola ${loan.clientName}, aquí los detalles de tu préstamo.`,
-        })
-        toast.success('QR compartido')
+        });
       } else {
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
-        toast('Enlace copiado (abriendo WhatsApp)', { icon: '📋' })
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
       }
-    }, 'image/png')
-  }
+      toast.success('QR compartido');
+    }, 'image/png');
+  };
 
   return (
     <motion.button
@@ -37,5 +36,5 @@ export default function QRButton({ loan }) {
     >
       QR
     </motion.button>
-  )
+  );
 }
