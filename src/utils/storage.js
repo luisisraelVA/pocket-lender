@@ -11,8 +11,6 @@ export function saveLoans(loans) {
 
 export function addLoan(loan) {
   const loans = getLoans();
-  // Asegurarse de que tenga payments array
-  loan.payments = loan.payments || [];
   loans.push(loan);
   saveLoans(loans);
 }
@@ -47,4 +45,37 @@ export function addPayment(loanId, payment) {
     return loan;
   });
   saveLoans(loans);
+}
+
+export function exportToCSV() {
+  const loans = getLoans();
+  const headers = ['Nombre','Teléfono','Capital (Bs.)','Interés (%)','Interés (Bs.)','Desembolsado','Cuota diaria','Días','Inicio','Vencimiento','Estado','Pagado (Bs.)','Saldo (Bs.)','Métodos','Notas'];
+  const rows = loans.map(loan => {
+    const totalPaid = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0);
+    const methods = [...new Set((loan.payments || []).map(p => p.method || 'sin registro'))].join('/');
+    return [
+      loan.clientName,
+      loan.phone,
+      loan.capital.toFixed(2),
+      loan.interestRate.toFixed(2),
+      loan.interestAmount.toFixed(2),
+      loan.disbursedAmount.toFixed(2),
+      loan.dailyQuota.toFixed(2),
+      loan.days,
+      loan.startDate,
+      loan.dueDate,
+      loan.status,
+      totalPaid.toFixed(2),
+      (loan.capital - totalPaid).toFixed(2),
+      methods,
+      loan.notes || ''
+    ];
+  });
+  const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `prestamos_${new Date().toISOString().split('T')[0]}.csv`);
+  link.click();
 }

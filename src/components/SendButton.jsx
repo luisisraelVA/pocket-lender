@@ -1,35 +1,45 @@
 import { motion } from 'framer-motion';
 import { Send } from 'lucide-react';
+import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
 export default function SendButton({ loan }) {
   const enviar = async () => {
-    const mensaje = `Hola ${loan.clientName}, gracias por tu responsabilidad. Aquí tienes mi QR para el pago.`;
+    const today = new Date();
+    const fechaFormateada = today.toLocaleDateString('es-BO', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const montoCuota = loan.dailyQuota.toFixed(2);
+    const mensajeTexto = `Hola ${loan.clientName}, hoy ${fechaFormateada} te corresponde pagar Bs. ${montoCuota}. Gracias por tu responsabilidad.`;
+
+    const qrData = `Pago de ${loan.clientName}\nMonto sugerido: Bs. ${montoCuota}\nFecha: ${fechaFormateada}\nGracias por tu pago puntual.`;
 
     try {
-      // 1. Cargar la imagen del QR
-      const response = await fetch('/mi-qr.png');
-      if (!response.ok) throw new Error('Imagen no encontrada');
-      const blob = await response.blob();
-      const file = new File([blob], 'qr-cobro.png', { type: 'image/png' });
+      const canvas = document.createElement('canvas');
+      await QRCode.toCanvas(canvas, qrData, { width: 400 });
 
-      // 2. Intentar compartir imagen + texto con la Web Share API
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], `pago-${loan.clientName}.png`, { type: 'image/png' });
+
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'QR de cobro',
-          text: mensaje,
+          title: 'Pago diario',
+          text: mensajeTexto,
         });
-        toast.success('QR compartido con éxito');
+        toast.success('QR enviado con éxito');
       } else {
-        // 3. Fallback: no se pueden compartir archivos → abrir WhatsApp con texto
         const numero = loan.phone.replace('+', '');
-        window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, '_blank');
-        toast('No se pudo adjuntar la imagen. Envíala manualmente desde tu galería.', { icon: '📎' });
+        window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensajeTexto)}`, '_blank');
+        toast('No se pudo adjuntar la imagen. Se abrió WhatsApp con el mensaje.', { icon: '📱' });
       }
     } catch (error) {
-      // 4. Error al cargar la imagen
-      toast.error('Imagen QR no encontrada. Coloca tu QR en public/mi-qr.png');
+      console.error(error);
+      toast.error('Error al generar el QR. Intenta de nuevo.');
     }
   };
 

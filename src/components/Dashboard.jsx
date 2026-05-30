@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLoans, saveLoans, addPayment, markAsPaid } from '../utils/storage';
+import { getLoans, saveLoans, addPayment, markAsPaid, exportToCSV } from '../utils/storage';
 import { calculateDebt } from '../utils/calculations';
 import LoanList from './LoanList';
 import SearchBar from './SearchBar';
@@ -8,7 +8,7 @@ import LoanFormModal from './LoanFormModal';
 import EditLoanModal from './EditLoanModal';
 import PaymentModal from './PaymentModal';
 import { checkAndNotifyDaily } from '../utils/notifications';
-import { PlusCircle, Download, Upload } from 'lucide-react';
+import { PlusCircle, Download, Upload, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [editingLoan, setEditingLoan] = useState(null);
   const [payingLoan, setPayingLoan] = useState(null);
   const [showExport, setShowExport] = useState(false);
+  const [renewalData, setRenewalData] = useState(null); // datos para renovación
 
   const refreshLoans = () => setLoans(getLoans());
 
@@ -37,10 +38,10 @@ export default function Dashboard() {
 
   const totalDebt = activeLoans.reduce((sum, loan) => sum + calculateDebt(loan), 0);
 
-  const handleAddPayment = (loanId, amount, date) => {
-    addPayment(loanId, { amount: parseFloat(amount), date });
+  const handleAddPayment = (loanId, payment) => {
+    addPayment(loanId, payment);
     refreshLoans();
-    toast.success(`Pago de Bs. ${amount} registrado`);
+    toast.success(`Pago de Bs. ${payment.amount} registrado`);
     const updatedLoans = getLoans();
     const loan = updatedLoans.find(l => l.id === loanId);
     if (loan && calculateDebt(loan) <= 0) {
@@ -48,6 +49,12 @@ export default function Dashboard() {
       refreshLoans();
       toast.success('¡Préstamo completado!', { icon: '✅' });
     }
+  };
+
+  const handleRenew = (loan) => {
+    // Prepara datos para un nuevo préstamo con el mismo cliente
+    setRenewalData({ clientName: loan.clientName, phone: loan.phone });
+    setShowNewLoan(true);
   };
 
   const handleExport = () => {
@@ -84,7 +91,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--clr-bg)] p-4 pb-24 relative overflow-hidden">
-      {/* Orbes ambientales */}
       <div className="absolute top-[-60px] left-[-20px] w-64 h-64 orb-cyan ambient-orb opacity-30 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 orb-indigo ambient-orb opacity-20 pointer-events-none" />
 
@@ -97,7 +103,6 @@ export default function Dashboard() {
           Pocket Lender
         </motion.h1>
 
-        {/* Tarjeta de deuda total */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -109,7 +114,6 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        {/* Tabs */}
         <div className="glass rounded-2xl p-1.5 flex gap-1">
           <button
             onClick={() => setActiveTab('activos')}
@@ -137,14 +141,14 @@ export default function Dashboard() {
           onEdit={setEditingLoan}
           onAddPayment={setPayingLoan}
           onUpdate={refreshLoans}
+          onRenew={handleRenew}
         />
 
-        {/* Botones flotantes */}
         <div className="fixed bottom-8 right-6 flex flex-col gap-3 z-20">
           <motion.button
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
-            onClick={() => setShowNewLoan(true)}
+            onClick={() => { setRenewalData(null); setShowNewLoan(true); }}
             className="w-16 h-16 glass-accent rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20"
           >
             <PlusCircle size={30} className="text-cyan-300" />
@@ -166,16 +170,19 @@ export default function Dashboard() {
                 📥 Importar JSON
                 <input type="file" accept=".json" onChange={handleImport} className="hidden" />
               </label>
+              <button onClick={() => { exportToCSV(); setShowExport(false); }} className="text-left px-4 py-2 hover:bg-white/5 rounded-xl text-white text-sm">
+                <FileSpreadsheet size={16} className="inline mr-1" /> Exportar CSV
+              </button>
             </div>
           )}
         </div>
 
-        {/* Modales */}
         <AnimatePresence>
           {showNewLoan && (
             <LoanFormModal
               onClose={() => setShowNewLoan(false)}
               onSaved={() => { setShowNewLoan(false); refreshLoans(); }}
+              initialData={renewalData}
             />
           )}
           {editingLoan && (
@@ -189,7 +196,7 @@ export default function Dashboard() {
             <PaymentModal
               loan={payingLoan}
               onClose={() => setPayingLoan(null)}
-              onPaid={handleAddPayment}
+              onPaid={(loanId, payment) => handleAddPayment(loanId, payment)}
             />
           )}
         </AnimatePresence>
