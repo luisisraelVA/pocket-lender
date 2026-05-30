@@ -31,3 +31,9 @@ export function markAsPaid(id) {
   saveLoans(loans);
   return loans;
 }
+
+export function deleteLoan(id) {
+  const loans = getLoans().filter(loan => loan.id !== id);
+  saveLoans(loans);
+  return loans;
+}
