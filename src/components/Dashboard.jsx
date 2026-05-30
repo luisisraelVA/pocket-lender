@@ -7,8 +7,6 @@ import SearchBar from './SearchBar';
 import LoanFormModal from './LoanFormModal';
 import EditLoanModal from './EditLoanModal';
 import PaymentModal from './PaymentModal';
-import RecordatorioButton from './RecordatorioButton';
-import { showDueNotification, checkDailyReminder } from '../utils/notifications';
 import { PlusCircle, Download, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -27,7 +25,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     refreshLoans();
-    checkDailyReminder();
   }, []);
 
   const activeLoans = loans.filter(l => l.status === 'activo');
@@ -51,16 +48,6 @@ export default function Dashboard() {
       refreshLoans();
       toast.success('¡Préstamo completado!', { icon: '✅' });
     }
-  };
-
-  const enviarRecordatoriosMasivos = async () => {
-    for (const loan of activeLoans) {
-      const debt = calculateDebt(loan).toFixed(2);
-      const mensaje = `Recordatorio de pago\nHola ${loan.clientName}, tu deuda actual es Bs. ${debt}\nGracias por estar al día.`;
-      window.open(`https://wa.me/${loan.phone.replace('+', '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
-      await new Promise(resolve => setTimeout(resolve, 800));
-    }
-    toast.success('Recordatorios enviados a todos');
   };
 
   const handleExport = () => {
@@ -134,36 +121,6 @@ export default function Dashboard() {
       </div>
 
       <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} />
-
-      <motion.button
-        whileTap={{ scale: 0.95 }}
-        onClick={showDueNotification}
-        className="w-full bg-gradient-to-r from-purple-500 to-pink-600 py-2 rounded-xl font-medium text-white shadow-lg shadow-purple-500/30 text-sm"
-      >
-        🔔 Recordar vencimientos de hoy
-      </motion.button>
-
-      {activeLoans.length > 0 && (
-        <div className="bg-slate-800/50 rounded-2xl p-4 border border-purple-500/30 space-y-3">
-          <h2 className="text-white font-semibold flex items-center gap-2">
-            📨 Recordatorios para hoy
-          </h2>
-          <p className="text-xs text-gray-400">
-            Envía recordatorios de pago a tus clientes activos.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={enviarRecordatoriosMasivos}
-              className="bg-gradient-to-r from-purple-600 to-pink-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg shadow-purple-500/30"
-            >
-              🚀 Enviar todos los recordatorios
-            </button>
-            {activeLoans.map(loan => (
-              <RecordatorioButton key={loan.id} loan={loan} />
-            ))}
-          </div>
-        </div>
-      )}
 
       <LoanList
         loans={filteredLoans}

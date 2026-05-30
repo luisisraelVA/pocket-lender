@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { addLoan } from '../utils/storage';
 import { generateId } from '../utils/calculations';
-import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
 export default function LoanFormModal({ onClose, onSaved }) {
@@ -11,11 +10,10 @@ export default function LoanFormModal({ onClose, onSaved }) {
     phone: '',
     amount: '',
     dailyInterest: '',
-    startDate: new Date().toISOString().split('T')[0],
     notes: '',
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const amount = parseFloat(form.amount);
     const dailyInterest = parseFloat(form.dailyInterest);
@@ -39,7 +37,7 @@ export default function LoanFormModal({ onClose, onSaved }) {
       phone: `+591${form.phone.trim()}`,
       amount,
       dailyInterest,
-      startDate: form.startDate,
+      startDate: new Date().toISOString().split('T')[0], // fecha actual automática
       notes: form.notes.trim(),
       status: 'activo',
       payments: [],
@@ -47,24 +45,6 @@ export default function LoanFormModal({ onClose, onSaved }) {
     };
     addLoan(loan);
     toast.success('Préstamo creado');
-
-    // Preguntar si desea enviar QR ahora
-    if (window.confirm('¿Deseas enviar el QR al cliente ahora?')) {
-      const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, `Préstamo de ${loan.clientName}\nDeuda: Bs. ${loan.amount}\nInterés diario: ${loan.dailyInterest}%`, { width: 400 });
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      const file = new File([blob], `prestamo-${loan.clientName}.png`, { type: 'image/png' });
-      if (navigator.share && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Nuevo préstamo',
-          text: `Hola ${loan.clientName}, te he registrado un préstamo.`,
-        });
-      } else {
-        window.open(`https://wa.me/${loan.phone.replace('+', '')}?text=${encodeURIComponent(`Hola ${loan.clientName}, te he registrado un préstamo.`)}`, '_blank');
-      }
-    }
-
     onSaved();
   };
 
@@ -105,10 +85,6 @@ export default function LoanFormModal({ onClose, onSaved }) {
           <div>
             <label className="text-sm text-gray-300">Interés diario (%) *</label>
             <input type="number" step="0.01" min="0" max="100" className={inputClasses} placeholder="5" value={form.dailyInterest} onChange={e => setForm({...form, dailyInterest: e.target.value})} required />
-          </div>
-          <div>
-            <label className="text-sm text-gray-300">Fecha de inicio</label>
-            <input type="date" className={inputClasses} value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
           </div>
           <div>
             <label className="text-sm text-gray-300">Notas</label>

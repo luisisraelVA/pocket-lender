@@ -4,7 +4,13 @@ import { updateLoan } from '../utils/storage';
 import toast from 'react-hot-toast';
 
 export default function EditLoanModal({ loan, onClose, onSaved }) {
-  const [form, setForm] = useState({ ...loan, phone: loan.phone.replace('+591', '') });
+  const [form, setForm] = useState({
+    clientName: loan.clientName,
+    phone: loan.phone.replace('+591', ''),
+    amount: loan.amount.toString(),
+    dailyInterest: loan.dailyInterest.toString(),
+    notes: loan.notes || '',
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,10 +30,12 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
     }
 
     updateLoan(loan.id, {
-      ...form,
+      clientName: form.clientName.trim(),
       phone: `+591${form.phone.trim()}`,
       amount,
       dailyInterest,
+      notes: form.notes.trim(),
+      // startDate se mantiene sin cambios
     });
     toast.success('Actualizado');
     onSaved();
@@ -69,10 +77,6 @@ export default function EditLoanModal({ loan, onClose, onSaved }) {
           <div>
             <label className="text-sm text-gray-300">Interés diario (%) *</label>
             <input type="number" step="0.01" min="0" max="100" className={inputClasses} value={form.dailyInterest} onChange={e => setForm({...form, dailyInterest: e.target.value})} required />
-          </div>
-          <div>
-            <label className="text-sm text-gray-300">Fecha inicio</label>
-            <input type="date" className={inputClasses} value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
           </div>
           <div>
             <label className="text-sm text-gray-300">Notas</label>

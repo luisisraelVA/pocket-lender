@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { calculateDebt } from '../utils/calculations';
 import { deleteLoan } from '../utils/storage';
-import { User, Phone, Edit, Trash2, DollarSign, Send } from 'lucide-react';
+import { User, Phone, Edit, Trash2, DollarSign } from 'lucide-react';
 import QRButton from './QRButton';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -25,13 +25,6 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
     onUpdate();
     setConfirmDelete(null);
     toast.success('Préstamo eliminado');
-  };
-
-  const enviarRecordatorio = (loan) => {
-    const debt = calculateDebt(loan).toFixed(2);
-    const mensaje = `Recordatorio de pago\nHola ${loan.clientName}, tu deuda actual es Bs. ${debt}\nGracias por estar al día.`;
-    window.open(`https://wa.me/${loan.phone.replace('+', '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
-    toast.success(`Recordatorio para ${loan.clientName} abierto en WhatsApp`);
   };
 
   return (
@@ -116,12 +109,6 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
                   <Edit size={14} className="text-yellow-400" />
                 </button>
                 <QRButton loan={loan} />
-                <button
-                  onClick={() => enviarRecordatorio(loan)}
-                  className="flex items-center gap-1 px-3 py-1 bg-purple-600 hover:bg-purple-500 rounded-lg text-xs text-white"
-                >
-                  <Send size={14} /> Recordar
-                </button>
                 <button
                   onClick={() => setConfirmDelete(loan.id)}
                   className="p-1.5 bg-slate-700/50 rounded-lg hover:bg-slate-600"
