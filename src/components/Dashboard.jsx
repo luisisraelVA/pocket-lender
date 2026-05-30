@@ -10,7 +10,6 @@ import PaymentModal from './PaymentModal';
 import RecordatorioButton from './RecordatorioButton';
 import { showDueNotification, checkDailyReminder } from '../utils/notifications';
 import { PlusCircle, Download, Upload } from 'lucide-react';
-import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -56,23 +55,10 @@ export default function Dashboard() {
 
   const enviarRecordatoriosMasivos = async () => {
     for (const loan of activeLoans) {
-      await new Promise(resolve => setTimeout(resolve, 300));
       const debt = calculateDebt(loan).toFixed(2);
       const mensaje = `Recordatorio de pago\nHola ${loan.clientName}, tu deuda actual es Bs. ${debt}\nGracias por estar al día.`;
-      const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, mensaje, { width: 400 });
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      const file = new File([blob], `recordatorio-${loan.clientName}.png`, { type: 'image/png' });
-      if (navigator.share && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Recordatorio de pago',
-          text: mensaje,
-        });
-      } else {
-        window.open(`https://wa.me/${loan.phone.replace('+', '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
-      }
-      await new Promise(resolve => setTimeout(resolve, 500));
+      window.open(`https://wa.me/${loan.phone.replace('+', '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
+      await new Promise(resolve => setTimeout(resolve, 800));
     }
     toast.success('Recordatorios enviados a todos');
   };
@@ -157,14 +143,13 @@ export default function Dashboard() {
         🔔 Recordar vencimientos de hoy
       </motion.button>
 
-      {/* Sección de recordatorios masivos */}
       {activeLoans.length > 0 && (
         <div className="bg-slate-800/50 rounded-2xl p-4 border border-purple-500/30 space-y-3">
           <h2 className="text-white font-semibold flex items-center gap-2">
             📨 Recordatorios para hoy
           </h2>
           <p className="text-xs text-gray-400">
-            Envía recordatorios de pago con el QR a tus clientes activos.
+            Envía recordatorios de pago a tus clientes activos.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
