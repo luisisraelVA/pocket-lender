@@ -3,6 +3,7 @@ import { calculateDebt } from '../utils/calculations';
 import { deleteLoan } from '../utils/storage';
 import { User, Phone, Edit, Trash2, DollarSign } from 'lucide-react';
 import QRButton from './QRButton';
+import RecordatorioButton from './RecordatorioButton';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 
@@ -109,6 +110,7 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate })
                   <Edit size={14} className="text-yellow-400" />
                 </button>
                 <QRButton loan={loan} />
+                <RecordatorioButton loan={loan} />
                 <button
                   onClick={() => setConfirmDelete(loan.id)}
                   className="p-1.5 bg-slate-700/50 rounded-lg hover:bg-slate-600"

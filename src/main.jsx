@@ -10,6 +10,10 @@ if ('serviceWorker' in navigator) {
   })
 }
 
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
