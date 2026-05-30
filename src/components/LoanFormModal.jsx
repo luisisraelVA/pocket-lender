@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { addLoan } from '../utils/storage';
 import { generateId } from '../utils/calculations';
+import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
 export default function LoanFormModal({ onClose, onSaved }) {
@@ -14,7 +15,7 @@ export default function LoanFormModal({ onClose, onSaved }) {
     notes: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const amount = parseFloat(form.amount);
     const dailyInterest = parseFloat(form.dailyInterest);
@@ -46,6 +47,24 @@ export default function LoanFormModal({ onClose, onSaved }) {
     };
     addLoan(loan);
     toast.success('Préstamo creado');
+
+    // Preguntar si desea enviar QR ahora
+    if (window.confirm('¿Deseas enviar el QR al cliente ahora?')) {
+      const canvas = document.createElement('canvas');
+      await QRCode.toCanvas(canvas, `Préstamo de ${loan.clientName}\nDeuda: Bs. ${loan.amount}\nInterés diario: ${loan.dailyInterest}%`, { width: 400 });
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], `prestamo-${loan.clientName}.png`, { type: 'image/png' });
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Nuevo préstamo',
+          text: `Hola ${loan.clientName}, te he registrado un préstamo.`,
+        });
+      } else {
+        window.open(`https://wa.me/${loan.phone.replace('+', '')}?text=${encodeURIComponent(`Hola ${loan.clientName}, te he registrado un préstamo.`)}`, '_blank');
+      }
+    }
+
     onSaved();
   };
 

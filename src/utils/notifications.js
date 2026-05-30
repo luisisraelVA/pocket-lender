@@ -2,12 +2,10 @@ import { getLoans } from './storage';
 
 export function checkDueToday() {
   const today = new Date().toISOString().split('T')[0];
-  // Préstamos activos con fecha de inicio igual a hoy? O no aplica. Como ahora no hay fecha de vencimiento, podemos omitir.
   return [];
 }
 
 export function showDueNotification() {
-  // Sin fecha de vencimiento, podemos recordar préstamos activos con deuda >0
   const activeLoans = getLoans().filter(l => l.status === 'activo');
   if (activeLoans.length === 0) return;
 
@@ -21,5 +19,19 @@ export function showDueNotification() {
     Notification.requestPermission().then(permission => {
       if (permission === 'granted') showDueNotification();
     });
+  }
+}
+
+export function checkDailyReminder() {
+  const lastReminder = localStorage.getItem('lastReminderDate');
+  const today = new Date().toDateString();
+  if (lastReminder !== today) {
+    if (Notification.permission === 'granted') {
+      new Notification('Pocket Lender', {
+        body: '¿Ya enviaste los recordatorios de pago de hoy?',
+        icon: '/icons/icon-192.png',
+      });
+    }
+    localStorage.setItem('lastReminderDate', today);
   }
 }
