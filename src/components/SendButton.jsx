@@ -5,6 +5,22 @@ import toast from 'react-hot-toast';
 
 export default function SendButton({ loan }) {
   const enviar = async () => {
+    // 1. Preguntar el monto que pagará hoy
+    const montoSugerido = loan.dailyQuota.toFixed(2);
+    const montoStr = window.prompt(
+      `¿Cuánto pagará ${loan.clientName} hoy?`,
+      montoSugerido
+    );
+
+    // Si cancela el prompt, no hace nada
+    if (montoStr === null) return;
+
+    const monto = parseFloat(montoStr);
+    if (isNaN(monto) || monto <= 0) {
+      toast.error('Monto inválido');
+      return;
+    }
+
     const today = new Date();
     const fechaFormateada = today.toLocaleDateString('es-BO', {
       weekday: 'long',
@@ -13,10 +29,10 @@ export default function SendButton({ loan }) {
       day: 'numeric',
     });
 
-    const montoCuota = loan.dailyQuota.toFixed(2);
-    const mensajeTexto = `Hola ${loan.clientName}, hoy ${fechaFormateada} te corresponde pagar Bs. ${montoCuota}. Gracias por tu responsabilidad.`;
+    const montoFormateado = monto.toFixed(2);
+    const mensajeTexto = `Hola ${loan.clientName}, hoy ${fechaFormateada} te corresponde pagar Bs. ${montoFormateado}. Gracias por tu responsabilidad.`;
 
-    const qrData = `Pago de ${loan.clientName}\nMonto sugerido: Bs. ${montoCuota}\nFecha: ${fechaFormateada}\nGracias por tu pago puntual.`;
+    const qrData = `Pago de ${loan.clientName}\nMonto: Bs. ${montoFormateado}\nFecha: ${fechaFormateada}\nGracias por tu pago puntual.`;
 
     try {
       const canvas = document.createElement('canvas');
