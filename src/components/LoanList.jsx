@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { calculateDebt } from '../utils/calculations';
 import { deleteLoan } from '../utils/storage';
-import { User, Phone, Edit, Trash2, DollarSign, Calendar, RotateCw } from 'lucide-react';
+import { User, Phone, Edit, Trash2, DollarSign, RotateCw } from 'lucide-react';
 import SendButton from './SendButton';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -25,11 +25,15 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate, o
     toast.success('Préstamo eliminado');
   };
 
+  // Función auxiliar para obtener dailyQuota segura
+  const getDailyQuota = (loan) => loan.dailyQuota || (loan.capital / (loan.days || 20));
+
   return (
     <ul className="space-y-4">
       {loans.map(loan => {
         const debt = calculateDebt(loan);
         const totalPaid = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0);
+        const dailyQuota = getDailyQuota(loan);
         return (
           <motion.li
             key={loan.id}
@@ -60,10 +64,10 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate, o
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <p className="text-xs text-gray-500">Capital: <span className="text-white">Bs. {loan.capital.toFixed(2)}</span></p>
-                <p className="text-xs text-gray-500">Interés: {loan.interestRate}% (Bs. {loan.interestAmount.toFixed(2)})</p>
+                <p className="text-xs text-gray-500">Interés: {loan.interestRate}% (Bs. {(loan.interestAmount || loan.capital * loan.interestRate / 100).toFixed(2)})</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Cuota diaria: <span className="text-cyan-300 font-bold">Bs. {loan.dailyQuota.toFixed(2)}</span></p>
+                <p className="text-xs text-gray-500">Cuota diaria: <span className="text-cyan-300 font-bold">Bs. {dailyQuota.toFixed(2)}</span></p>
                 <p className="text-xs text-gray-500">{loan.days} días · Inicio: {loan.startDate}</p>
               </div>
             </div>
@@ -111,7 +115,7 @@ export default function LoanList({ loans, tab, onEdit, onAddPayment, onUpdate, o
                 <button onClick={() => onEdit(loan)} className="p-2.5 glass rounded-xl hover:bg-white/5">
                   <Edit size={16} className="text-yellow-400" />
                 </button>
-                <SendButton loan={loan} />
+                <SendButton loan={{ ...loan, dailyQuota }} />
                 <button onClick={() => setConfirmDelete(loan.id)} className="p-2.5 glass rounded-xl hover:bg-white/5">
                   <Trash2 size={16} className="text-red-400" />
                 </button>
