@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Send } from 'lucide-react';
-import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
 export default function SendButton({ loan }) {
@@ -32,15 +31,14 @@ export default function SendButton({ loan }) {
     const montoFormateado = monto.toFixed(2);
     const mensajeTexto = `Hola ${loan.clientName}, hoy ${fechaFormateada} te corresponde pagar Bs. ${montoFormateado}. Gracias por tu responsabilidad.`;
 
-    const qrData = `Pago de ${loan.clientName}\nMonto: Bs. ${montoFormateado}\nFecha: ${fechaFormateada}\nGracias por tu pago puntual.`;
-
     try {
-      const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, qrData, { width: 400 });
+      // 2. Cargar tu QR real del banco (mi-qr.png)
+      const response = await fetch('/mi-qr.png');
+      if (!response.ok) throw new Error('Imagen no encontrada');
+      const blob = await response.blob();
+      const file = new File([blob], 'qr-cobro.png', { type: 'image/png' });
 
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-      const file = new File([blob], `pago-${loan.clientName}.png`, { type: 'image/png' });
-
+      // 3. Compartir imagen + texto
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -49,13 +47,13 @@ export default function SendButton({ loan }) {
         });
         toast.success('QR enviado con éxito');
       } else {
+        // Fallback: abrir WhatsApp solo con texto
         const numero = loan.phone.replace('+', '');
         window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensajeTexto)}`, '_blank');
         toast('No se pudo adjuntar la imagen. Se abrió WhatsApp con el mensaje.', { icon: '📱' });
       }
     } catch (error) {
-      console.error(error);
-      toast.error('Error al generar el QR. Intenta de nuevo.');
+      toast.error('Imagen QR no encontrada. Coloca tu QR en public/mi-qr.png');
     }
   };
 
